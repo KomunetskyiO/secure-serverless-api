@@ -1,6 +1,6 @@
 module "lambda" {
-  source = "./modules/lambda"
-  region = var.region
+  source                  = "./modules/lambda"
+  region                  = var.region
 }
 
 module "api-gateway" {
@@ -11,4 +11,16 @@ module "api-gateway" {
 module "dynamodb" {
   source = "./modules/dynamodb"
   tables = var.tables
+}
+
+module "s3" {
+  source = "./modules/s3"
+}
+
+resource "null_resource" "lambda_permission" {
+  depends_on = [module.lambda, module.api-gateway]
+  
+  provisioner "local-exec" {
+    command = "aws lambda add-permission --function-name secure-api-lambda --statement-id AllowAPIGatewayInvoke --action lambda:InvokeFunction --principal apigateway.amazonaws.com --source-arn ${module.api-gateway.execution_arn}/*/*/* --region ${var.region}"
+  }
 }

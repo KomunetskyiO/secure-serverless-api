@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Serverless API Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        input, button { padding: 10px; margin: 5px; }
+        #response { margin-top: 20px; white-space: pre-wrap; text-align: left; max-width: 500px; margin: 20px auto; }
+        .error { color: red; }
+        .loading { color: gray; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>DevSecOps Pet Project</h1>
+    <input type="text" id="name" placeholder="Enter your name">
+    <button id="submitBtn" onclick="sendRequest()">Send Request</button>
+    <div id="response"></div>
+    <script>
+        // API configuration
+        const API_URL = "https://7mevmz8je5.execute-api.us-east-1.amazonaws.com/prod";
+        
+        async function sendRequest() {
+            const nameInput = document.getElementById("name");
+            const responseDiv = document.getElementById("response");
+            const submitBtn = document.getElementById("submitBtn");
+            
+            // Basic input validation
+            const name = nameInput.value.trim();
+            if (!name) {
+                responseDiv.innerHTML = '<span class="error">Please enter a name</span>';
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            responseDiv.innerHTML = '<span class="loading">Loading response...</span>';
+            
+            try {
+                const response = await fetch(`${API_URL}?name=${encodeURIComponent(name)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                responseDiv.innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                console.error('Request failed:', error);
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

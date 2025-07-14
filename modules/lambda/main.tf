@@ -21,4 +21,19 @@ resource "aws_lambda_function" "example" {
   runtime       = "python3.9"
   filename      = "${path.module}/../../lambda.zip"
   role          = aws_iam_role.lambda_role.arn
+  environment {
+    variables = {
+      GREETING_MESSAGE = "Welcome to the Secure API project,"
+    }
+  }
+}
+
+resource "aws_lambda_permission" "api_gateway" {
+  count = var.api_gateway_execution_arn != "" ? 1 : 0
+  
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.example.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${var.api_gateway_execution_arn}/*/*/*"
 }
