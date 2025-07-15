@@ -43,3 +43,10 @@ resource "aws_s3_bucket_policy" "website" {
   ### Make sure public access block is disabled first
   depends_on = [aws_s3_bucket_public_access_block.website]
 }
+
+resource "aws_s3_object" "config" {
+  bucket       = aws_s3_bucket.website.id
+  key          = "config.json"
+  content      = jsonencode({ api_url = var.api_gateway_url })
+  content_type = "application/json"
+}

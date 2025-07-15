@@ -14,7 +14,8 @@ module "dynamodb" {
 }
 
 module "s3" {
-  source = "./modules/s3"
+  source          = "./modules/s3"
+  api_gateway_url = module.api-gateway.api_url
 }
 
 resource "null_resource" "lambda_permission" {
