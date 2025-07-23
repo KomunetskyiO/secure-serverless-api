@@ -1,10 +1,9 @@
-resource "aws_dynamodb_table" "tables" {
-  for_each     = var.tables
-  name         = each.key
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = each.value.hash_key
+resource "aws_dynamodb_table" "tasks" {
+  name           = "Tasks"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "id"
   attribute {
-    name = each.value.hash_key
+    name = "id"
     type = "S"
   }
 }
