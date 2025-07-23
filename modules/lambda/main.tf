@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "lambda_role" {
   name = "lambda-execution-role"
   assume_role_policy = jsonencode({
@@ -36,4 +38,25 @@ resource "aws_lambda_permission" "api_gateway" {
   function_name = aws_lambda_function.example.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${var.api_gateway_execution_arn}/*/*/*"
+}
+
+resource "aws_iam_role_policy" "lambda_policy" {
+  name = "lambda-dynamodb-policy"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:Scan",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem"
+        ],
+        Resource = "arn:aws:dynamodb:us-east-1:${data.aws_caller_identity.current.account_id}:table/Tasks"
+      }
+    ]
+  })
 }
