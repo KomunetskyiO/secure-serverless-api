@@ -1,33 +1,485 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Secure Serverless API Demo</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        input, button { padding: 10px; margin: 5px; }
-        #response { margin-top: 20px; }
+      :root {
+        --primary: #4e73df;
+        --success: #1cc88a;
+        --danger: #e74a3b;
+        --secondary: #858796;
+        --light: #f8f9fc;
+        --dark: #5a5c69;
+      }
+
+      body {
+        font-family: "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+        background-color: var(--light);
+        color: var(--dark);
+        line-height: 1.6;
+        padding: 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0.15rem 1.75rem rgba(58, 59, 69, 0.15);
+        padding: 25px;
+        margin-bottom: 25px;
+      }
+
+      h1 {
+        color: var(--primary);
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      h3 {
+        color: var(--dark);
+        border-bottom: 1px solid #e3e6f0;
+        padding-bottom: 10px;
+        margin-top: 0;
+      }
+
+      input,
+      button {
+        padding: 10px 15px;
+        margin: 8px 0;
+        border: 1px solid #d1d3e2;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+
+      input {
+        display: block;
+        width: calc(100% - 32px);
+      }
+
+      button {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      button:hover {
+        background-color: #2e59d9;
+      }
+
+      button.refresh {
+        background-color: var(--secondary);
+      }
+
+      button.refresh:hover {
+        background-color: #717584;
+      }
+
+      .close-btn {
+        background-color: var(--danger);
+        padding: 6px 12px;
+      }
+
+      .close-btn:hover {
+        background-color: #be3024;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th {
+        background-color: var(--primary);
+        color: white;
+        text-align: left;
+      }
+
+      th,
+      td {
+        border: 1px solid #e3e6f0;
+        padding: 12px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f8f9fc;
+      }
+
+      .status-open {
+        color: var(--primary);
+        font-weight: bold;
+      }
+
+      .status-done {
+        color: var(--success);
+        font-weight: bold;
+      }
+
+      #response {
+        margin-top: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .alert {
+        padding: 12px;
+        border-radius: 4px;
+        margin: 15px 0;
+      }
+
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      .loading {
+        text-align: center;
+        color: var(--secondary);
+        padding: 20px;
+      }
+
+      /* Welcome Screen Styles */
+      #welcome-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: opacity 0.5s ease;
+      }
+
+      .welcome-text {
+        font-size: 2.5rem;
+        color: white;
+        text-align: center;
+        margin-bottom: 30px;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 1s ease, transform 1s ease;
+      }
+
+      #project-info {
+        font-size: 1.2rem;
+        color: white;
+        text-align: center;
+        max-width: 600px;
+        margin: 30px auto;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 1s ease, transform 1s ease;
+        display: none;
+        position: relative;
+        z-index: 5;
+      }
+
+      #welcome-text-2 {
+        margin-bottom: 20px;
+      }
+
+      #get-started-btn {
+        margin-top: 30px;
+      }
+
+      .welcome-btn {
+        padding: 12px 24px;
+        font-size: 18px;
+        background-color: white;
+        color: var(--primary);
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 1s ease, transform 1s ease,
+          background-color 0.3s ease;
+        display: none;
+        margin-top: 10px;
+      }
+
+      .welcome-btn:hover {
+        background-color: #f0f0f0;
+      }
+
+      .main-app {
+        display: none;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+
+      .fade-in {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+      }
+
+      .fade-out {
+        opacity: 0 !important;
+      }
     </style>
-</head>
-<body>
-    <h1>DevSecOps Pet Project</h1>
-    <input type="text" id="name" placeholder="Enter your name">
-    <button onclick="sendRequest()">Send Request</button>
-    <div id="response"></div>
+  </head>
+  <body>
+    <!-- Welcome Screen -->
+    <div id="welcome-screen">
+      <div id="welcome-text-1" class="welcome-text">Hi, welcome.</div>
+      <div id="welcome-text-2" class="welcome-text">I'm Cloudy.</div>
+      <button id="about-btn" class="welcome-btn">About Project</button>
+      <div id="project-info">
+        Serverless task helper, created by Oleh Komunetskyi.<br><br>
+        Stack: AWS Lambda, API Gateway, DynamoDB, CI/CD GitHub Actions, Terraform. Secured with WAF & Cognito.
+      </div>
+      <button id="get-started-btn" class="welcome-btn">Get Started</button>
+    </div>
+
+    <!-- Main App Content -->
+    <div class="main-app">
+      <div class="container">
+        <h1>Cloudy</h1>
+
+        <div class="container">
+          <h3>Add New Task</h3>
+          <div class="form-group">
+            <input type="text" id="name" placeholder="Task Name" />
+          </div>
+          <div class="form-group">
+            <input
+              type="text"
+              id="description"
+              placeholder="Task Description"
+            />
+          </div>
+          <button onclick="addTask()">Add Task</button>
+        </div>
+
+        <div class="container">
+          <h3>Task List</h3>
+          <button class="refresh" onclick="getTasks()">Refresh Tasks</button>
+          <div id="response" class="loading">Loading tasks...</div>
+        </div>
+      </div>
+    </div>
+
     <script>
-        async function loadConfig() {
-            const response = await fetch('/config.json');
-            const config = await response.json();
-            return config.api_url;
+      // Replace the entire welcome animation section with this:
+
+      // Welcome animation sequence
+      document.addEventListener("DOMContentLoaded", function () {
+        const welcomeScreen = document.getElementById("welcome-screen");
+        const welcomeText1 = document.getElementById("welcome-text-1");
+        const welcomeText2 = document.getElementById("welcome-text-2");
+        const aboutBtn = document.getElementById("about-btn");
+        const projectInfo = document.getElementById("project-info");
+        const getStartedBtn = document.getElementById("get-started-btn");
+        const mainApp = document.querySelector(".main-app");
+
+        // Animation sequence
+        // Step 1: "Hi, welcome"
+        setTimeout(() => {
+          welcomeText1.classList.add("fade-in");
+
+          // Step 2: Fade out first text, show "I am Cloudy"
+          setTimeout(() => {
+            welcomeText1.classList.remove("fade-in");
+            welcomeText1.classList.add("fade-out");
+
+            setTimeout(() => {
+              welcomeText2.classList.add("fade-in");
+
+              // Step 3: Show About button
+              setTimeout(() => {
+                aboutBtn.style.display = "block";
+                setTimeout(() => {
+                  aboutBtn.classList.add("fade-in");
+                }, 100);
+              }, 1500);
+            }, 500);
+          }, 2000);
+        }, 500);
+
+        // Handle About button click
+        aboutBtn.addEventListener("click", () => {
+          // Fade out the About button
+          aboutBtn.classList.remove("fade-in");
+          aboutBtn.classList.add("fade-out");
+
+          // Completely hide the About button after animation completes
+          setTimeout(() => {
+            aboutBtn.style.display = "none";
+          }, 600);
+
+          // Show project info
+          projectInfo.style.display = "block";
+          setTimeout(() => {
+            projectInfo.classList.add("fade-in");
+
+            // Show Get Started button after a delay
+            setTimeout(() => {
+              getStartedBtn.style.display = "block";
+              setTimeout(() => {
+                getStartedBtn.classList.add("fade-in");
+              }, 100);
+            }, 2000);
+          }, 100);
+        });
+
+        // Handle Get Started button click
+        getStartedBtn.addEventListener("click", () => {
+          welcomeScreen.classList.add("fade-out");
+
+          setTimeout(() => {
+            welcomeScreen.style.display = "none";
+            mainApp.style.display = "block";
+
+            setTimeout(() => {
+              mainApp.classList.add("fade-in");
+              // Load tasks after animation completes
+              getTasks();
+            }, 100);
+          }, 500);
+        });
+      });
+
+      async function loadConfig() {
+        try {
+          const response = await fetch("/config.json");
+          const config = await response.json();
+          if (!config.api_url) {
+            console.error("api_url not found in config.json");
+            return "https://u4ok9z1o43.execute-api.us-east-1.amazonaws.com/prod";
+          }
+          return config.api_url;
+        } catch (error) {
+          console.error("Config load error:", error);
+          return "https://u4ok9z1o43.execute-api.us-east-1.amazonaws.com/prod";
+        }
+      }
+
+      async function addTask() {
+        const name = document.getElementById("name").value.trim();
+        const description = document.getElementById("description").value.trim();
+        
+        // Generate a unique ID
+        const id = "task-" + Date.now();
+
+        if (!name) {
+          showMessage("Please name the task", "danger");
+          return;
         }
 
-        async function sendRequest() {
-            const name = document.getElementById("name").value;
-            const apiUrl = await loadConfig();
-            const response = await fetch(`${apiUrl}/example?name=${encodeURIComponent(name)}`);
-            const data = await response.json();
-            document.getElementById("response").innerText = JSON.stringify(data, null, 2);
+        showLoading();
+        const apiUrl = await loadConfig();
+
+        try {
+          const response = await fetch(`${apiUrl}/example`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, name, description }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.text();
+          showMessage("Task added successfully!", "success");
+
+          // Clear form
+          document.getElementById("name").value = "";
+          document.getElementById("description").value = "";
+
+          // Refresh task list
+          getTasks();
+        } catch (error) {
+          showMessage("Error: " + error.message, "danger");
         }
+      }
+
+      async function getTasks() {
+        showLoading();
+        const apiUrl = await loadConfig();
+
+        try {
+          const response = await fetch(`${apiUrl}/example`);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (!data.tasks || data.tasks.length === 0) {
+            document.getElementById("response").innerHTML =
+              "<p>No tasks found. Add your first task!</p>";
+            return;
+          }
+
+          let table = "<table><tr><th>Name</th><th>Description</th><th>Action</th></tr>";
+
+          data.tasks.forEach((task) => {
+            table += `<tr>
+                        <td>${task.name || ""}</td>
+                        <td>${task.description || ""}</td>
+                        <td>${
+                          task.status !== "done"
+                            ? `<button class="close-btn" onclick="closeTask('${task.id}')">Complete</button>`
+                            : "Completed"
+                        }</td>
+                    </tr>`;
+          });
+
+          table += "</table>";
+          document.getElementById("response").innerHTML = table;
+        } catch (error) {
+          showMessage("Error loading tasks: " + error.message, "danger");
+        }
+      }
+
+      async function closeTask(taskId) {
+        showLoading();
+        const apiUrl = await loadConfig();
+
+        try {
+          const response = await fetch(`${apiUrl}/example/${taskId}`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          showMessage("Task marked as complete!", "success");
+          getTasks();
+        } catch (error) {
+          showMessage("Error: " + error.message, "danger");
+        }
+      }
+
+      function showMessage(message, type) {
+        document.getElementById(
+          "response"
+        ).innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+      }
+
+      function showLoading() {
+        document.getElementById("response").innerHTML =
+          '<div class="loading">Loading...</div>';
+      }
     </script>
-</body>
+  </body>
 </html>
